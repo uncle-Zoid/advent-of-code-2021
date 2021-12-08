@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(adventOfCode2021 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_subdirectory(day1)
+add_subdirectory(day2)
+add_subdirectory(day3)
+add_subdirectory(day4)
+add_subdirectory(day5)
