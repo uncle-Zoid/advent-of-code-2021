@@ -52,27 +52,17 @@ void draw(tuple<Point, Point> &l, uint8_t *field, int N)
     }
     else
     {
-        int x1 = min(p1.x, p2.x);
-        int x2 = max(p1.x, p2.x);
-        int y1 = min(p1.y, p2.y);
-        int y2 = max(p1.y, p2.y);
-
-        int dx = (x1 - x2);
-        int dy = (y1 - y2);
-        assert (abs(dx) == abs(dy));
-
-        int n = dx;
-        int col = p1.x;
-        int row = p1.y;
-        int mcol = p1.x < p2.x ? -1:1;
-        int mrow = p1.y < p2.y ? -1:1;
+        int n = abs(p1.x - p2.x);
+        int x = p1.x;
+        int y = p1.y;
+        int sx = p1.x > p2.x ? -1:1;
+        int sy = p1.y > p2.y ? -1:1;
 
         for (int i = 0; i <= n; ++i)
         {
-            ++field[row*N + col];
-            row += mcol;
-            col += mrow;
-
+            ++field[y*N + x];
+            x += sx;
+            y += sy;
         }
     }
 }
@@ -147,9 +137,8 @@ int main(int argc, char** argv)
         N = max(N, max(p1.getBigger(), p2.getBigger()));
 
         lines.push_back(make_tuple(p1, p2));
-        cout << "P1: {" << p1 << "}, P2: {" << p2 << "}" << endl;
     }
-//    N=16;
+
     N += 1;
     cout << endl << endl;;
     cout << "N=" << N << endl;
@@ -162,9 +151,9 @@ int main(int argc, char** argv)
         cout << "P1: {" << get<0>(l) << "}, P2: {" << get<1>(l) << "}" << endl;
         draw(l, field, N);
 //        cout << "Overlaps: " << countOverlap(field, N) << endl;
-        print(field, N);
-        cout << endl;
-        getchar();
+//        print(field, N);
+//        cout << endl;
+//        getchar();
     }
 
 //    print(field, N);
