@@ -3,23 +3,33 @@
 #include <sstream>
 #include <map>
 #include <list>
+#include <set>
 #include <algorithm>
 #include <iomanip>
 #include <cassert>
 #include <cmath>
 using namespace std;
 
-
+ostream &operator << (ostream &os, const list<char> &l)
+{
+    for (char ch : l)
+    {
+        os << ch;
+    }
+    return os;
+}
 
 struct Navigation
 {
     struct Line
     {
         string line;
+        list<char> remain;
         char invalid = 0;
     };
 
     list<Line> lines;
+    list<string> supplement;
 
     int load(const char *filename)
     {
@@ -48,12 +58,14 @@ struct Navigation
         int score = 0;
         for (auto &l : lines)
         {
-            cout << l.line << (l.invalid == 0x7F ? "incomplede" : (l.invalid == 0x00 ? "" : ("corrupted with " + string(1, l.invalid)))) << endl;
+            cout << l.line << (l.invalid == 0x7F ? "incomplete" : (l.invalid == 0x00 ? "" : ("corrupted with " + string(1, l.invalid))));
+            if (l.invalid == 0x7F) cout << "\tREMAINS: " << l.remain;
             if (l.invalid > 0 && l.invalid < 0x7F)
             {
                 auto it = illegalPoints.find(l.invalid);
                 score += it->second;
             }
+            cout << endl;
         }
         cout << "Score=" << score << endl;
         cout << endl;
@@ -63,6 +75,7 @@ struct Navigation
     static constexpr const char* chunksOpen = "([{<";
     static constexpr const char* chunksClose = ")]}>";
     const map<char, int> illegalPoints = {{')',3},{']',57},{'}',1197},{'>',25137}};
+    const map<char, int> supplementPoints = {{'(',1},{'[',2},{'{',3},{'<',4}};
 
     char findClosingChunkFor(char chunk)
     {
@@ -73,7 +86,6 @@ struct Navigation
 
     void findInvalidLines()
     {
-        const char chunks [][2] = {{'(', ')'} , {'[', ']'} , {'{', '}'} , {'<', '>'}};
         for (auto &l : lines)
         {
             list<char> p;
@@ -97,8 +109,42 @@ struct Navigation
             if (l.invalid == 0 && p.size() > 0)
             {
                 l.invalid = 0x7F; // incomplete
+                l.remain = p;
             }
         }
+    }
+
+    void findSupplements()
+    {
+        std::multiset<uint64_t> scores;
+        int rema = 0;
+        for (auto &l : lines)
+        {
+            uint64_t score = 0;
+            rema += l.remain.size() > 0;
+            for (auto ch = l.remain.rbegin(); ch != l.remain.rend(); ++ch)
+            {
+                auto it = find(chunksOpen, chunksOpen + 4, *ch);
+                assert (it != chunksOpen + 4);
+
+                int add = supplementPoints.at(*it);
+                score *= 5;
+                score += add;
+            }
+            if(l.remain.size() > 0)
+            {
+                scores.insert(score);
+                cout << l.remain << " : score: " << score << endl;
+            }
+        }
+
+        int half = scores.size() / 2;
+        auto it = scores.begin();
+        for (int i = 0; i < half; ++i)
+        {
+            ++it;
+        }
+        cout << "Middle score is in " << half << "/" << scores.size() << ": " << *it << endl;
     }
 };
 
@@ -122,5 +168,6 @@ int main(int argc, char** argv)
     navi.print();
     navi.findInvalidLines();
     navi.print();
+    navi.findSupplements();
     return 0;
 }
